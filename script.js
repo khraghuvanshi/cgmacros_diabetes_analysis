@@ -83,7 +83,7 @@ d3.json("data.json").then(data => {
         if (insulinLevel > 25) category = "Diabetic";
         else if (insulinLevel > 10) category = "Pre-diabetic";
 
-        let newUser = { carbs, protein, fat, fiber, insulin: insulinLevel, category };
+        let newUser = { carbs, protein, fat, fiber, insulin: insulinLevel, category, isUserInput: true };
 
         data.push(newUser);
         simulation.nodes(data);
@@ -92,9 +92,9 @@ d3.json("data.json").then(data => {
             .attr("cx", width / 2)
             .attr("cy", height / 2)
             .attr("r", 12)
-            .attr("fill", colorScale(insulinLevel))
+            .attr("fill", "blue")  // Blue for user input
             .style("opacity", 1)
-            .on("mouseover", (event, d) => {
+            .on("mouseover", (event) => {
                 tooltip.style("visibility", "visible")
                     .html(`Carbs: ${carbs}g <br> Protein: ${protein}g <br> Fat: ${fat}g <br> Fiber: ${fiber}g <br> Insulin: ${insulinLevel.toFixed(2)}`);
             })
@@ -104,7 +104,20 @@ d3.json("data.json").then(data => {
             })
             .on("mouseout", () => tooltip.style("visibility", "hidden"));
 
+        // Add category label next to the new bubble
+        let label = svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("font-size", "14px")
+            .attr("fill", "black")
+            .text(category);
+
+        // Update simulation to include the new point
         simulation.nodes(data);
         simulation.alpha(1).restart();
+
+        simulation.on("tick", () => {
+            newBubble.attr("cx", newUser.x).attr("cy", newUser.y);
+            label.attr("x", newUser.x + 15).attr("y", newUser.y); // Position text slightly right of the dot
+        });
     };
 });
