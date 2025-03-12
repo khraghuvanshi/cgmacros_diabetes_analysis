@@ -3,16 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Macronutrient Clustering</title>
-    <script src="https://d3js.org/d3.v6.min.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        svg { border: 1px solid black; }
-    </style>
+    <title>Interactive Clustering: Insulin & Macronutrients</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Macronutrient Intake Clustering</h1>
-    <svg width="800" height="600"></svg>
+    <h1>Insulin & Macronutrient Clustering</h1>
+
+    <div class="input-container">
+        <label>Carbs (g): <input type="number" id="carbs" value="50"></label>
+        <label>Protein (g): <input type="number" id="protein" value="20"></label>
+        <label>Fat (g): <input type="number" id="fat" value="10"></label>
+        <label>Fiber (g): <input type="number" id="fiber" value="5"></label>
+        <button onclick="addUserData()">Check Classification</button>
+    </div>
+
+    <svg width="800" height="500"></svg>
 
     <script src="script.js"></script>
 </body>
