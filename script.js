@@ -43,9 +43,9 @@ d3.json("data.json").then(data => {
 
     // Force simulation
     const simulation = d3.forceSimulation(data)
-        .force("x", d3.forceX(d => clusters[d.category].x).strength(0.2))
-        .force("y", d3.forceY(d => clusters[d.category].y).strength(0.2))
-        .force("collide", d3.forceCollide(15))
+        .force("x", d3.forceX(d => clusters[d.category].x).strength(0.8))
+        .force("y", d3.forceY(d => clusters[d.category].y).strength(0.8))
+        .force("collide", d3.forceCollide(20))
         .on("tick", ticked);
 
     // Draw bubbles
