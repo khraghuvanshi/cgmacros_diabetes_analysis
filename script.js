@@ -23,6 +23,16 @@ const tooltip = d3.select("body").append("div")
     .style("visibility", "hidden");
 
 d3.json("data.json").then(data => {
+    // Normalize keys and remove trailing spaces
+    data = data.map(d => ({
+        subject: d.subject,
+        carbs: d.Carbs,
+        protein: d.Protein,
+        fat: d.Fat,
+        fiber: d.Fiber,
+        insulin: d["Insulin "] // Fix trailing space issue
+    }));
+
     // Assign category
     data.forEach(d => {
         if (d.insulin > 25) d.category = "Diabetic";
