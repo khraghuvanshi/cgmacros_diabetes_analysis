@@ -42,11 +42,24 @@ d3.json("data.json").then(data => {
     });
 
     // Force simulation
+    const centerX = width / 2;
+    const centerY = height / 2;
+
     const simulation = d3.forceSimulation(data)
-        .force("x", d3.forceX(d => clusters[d.category].x).strength(0.5))
-        .force("y", d3.forceY(d => clusters[d.category].y).strength(0.5))
-        .force("collide", d3.forceCollide(12))
-        .on("tick", ticked);
+        .force("x", d3.forceX(centerX).strength(0.2)) // Weak pull to center
+        .force("y", d3.forceY(centerY).strength(0.2)) // Weak pull to center
+        .force("collide", d3.forceCollide(15)) // Prevent overlap, but not too strong
+        .force("charge", d3.forceManyBody().strength(-10)) // Weak repulsion to prevent extreme spread
+        .alpha(1)  // Start strong for smooth movement
+        .alphaDecay(0.05)  // Reduce expansion time
+        .alphaMin(0.1)  // Stop simulation sooner
+        .on("tick", ticked); // Update positions
+
+    // const simulation = d3.forceSimulation(data)
+    //     .force("x", d3.forceX(d => clusters[d.category].x).strength(0.5))
+    //     .force("y", d3.forceY(d => clusters[d.category].y).strength(0.5))
+    //     .force("collide", d3.forceCollide(12))
+    //     .on("tick", ticked);
 
     // Draw bubbles
     const bubbles = svg.selectAll("circle")
