@@ -52,14 +52,12 @@ d3.json("data.json").then(data => {
     // const centerY = height / 2;
 
     const simulation = d3.forceSimulation(data)
-        .force("x", d3.forceX(d => clusterCenters[d.category].x).strength(0.5)) // Stronger pull to the center
-        .force("y", d3.forceY(d => clusterCenters[d.category].y).strength(0.5)) // Stronger vertical positioning
-        .force("collide", d3.forceCollide(12)) // Prevent overlap but keep them tight
-        .force("charge", d3.forceManyBody().strength(-10)) // Reduce repulsion to avoid excessive spread
-        .force("bounding", d3.forceX(d => Math.max(50, Math.min(width - 50, d.x))).strength(1)) // Constrain within svg
-        .force("boundingY", d3.forceY(d => Math.max(50, Math.min(height - 50, d.y))).strength(1)) // Constrain within svg
+        .force("x", d3.forceX(d => clusterCenters[d.category].x).strength(0.3)) // Move to cluster center
+        .force("y", d3.forceY(d => clusterCenters[d.category].y).strength(0.3)) // Keep groups aligned
+        .force("collide", d3.forceCollide(12)) // Prevent overlap, ensure separation
+        .force("charge", d3.forceManyBody().strength(-5)) // Soft repulsion to avoid excessive spread
         .alpha(1)  
-        .alphaDecay(0.03) // Slower decay for smoother stopping
+        .alphaDecay(0.05)  
         .on("tick", ticked);
 
     // const simulation = d3.forceSimulation(data)
@@ -86,8 +84,11 @@ d3.json("data.json").then(data => {
         .on("mouseout", () => tooltip.style("visibility", "hidden"));
 
     function ticked() {
-        bubbles.attr("cx", d => d.x)
-               .attr("cy", d => d.y);
+        d3.selectAll("circle")
+        .attr("cx", d => Math.max(20, Math.min(width - 20, d.x))) // Keep inside width
+        .attr("cy", d => Math.max(20, Math.min(height - 20, d.y))); // Keep inside height
+        // bubbles.attr("cx", d => d.x)
+        //        .attr("cy", d => d.y);
     }
 
     // Add new user data point
