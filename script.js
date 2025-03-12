@@ -4,10 +4,11 @@ const height = +svg.attr("height");
 
 // Cluster positions
 const clusters = {
-    "Healthy": { x: width * 0.3, y: height / 2 },
-    "Pre-diabetic": { x: width * 0.5, y: height / 2 },
-    "Diabetic": { x: width * 0.7, y: height / 2 }
+    "Healthy": { x: width * 0.25, y: height * 0.5 }, 
+    "Pre-diabetic": { x: width * 0.5, y: height * 0.5 }, 
+    "Diabetic": { x: width * 0.75, y: height * 0.5 } 
 };
+
 
 // Color scale for categories
 const colorScale = d3.scaleThreshold()
