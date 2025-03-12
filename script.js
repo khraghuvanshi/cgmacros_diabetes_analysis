@@ -114,7 +114,9 @@ d3.json("data.json").then(data => {
 
         // Update simulation to include the new point
         simulation.nodes(data);
-        simulation.alpha(1).restart();
+        simulation.alpha(0.3).restart();
+        simulation.alphaMin(0.05); // Stops simulation sooner
+
 
         simulation.on("tick", () => {
             newBubble.attr("cx", newUser.x).attr("cy", newUser.y);
