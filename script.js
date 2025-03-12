@@ -1,101 +1,108 @@
-// D3 Cluster Visualization with User Input
+const svg = d3.select("svg");
+const width = +svg.attr("width");
+const height = +svg.attr("height");
 
-const width = 800, height = 500;
-const svg = d3.select("#chart").append("svg")
-    .attr("width", width)
-    .attr("height", height);
-
-// Define cluster centers
+// Cluster positions
 const clusters = {
-    "Healthy": { x: 200, y: height / 2, color: "green" },
-    "Pre-diabetic": { x: 400, y: height / 2, color: "orange" },
-    "Diabetic": { x: 600, y: height / 2, color: "red" }
+    "Healthy": { x: width * 0.3, y: height / 2 },
+    "Pre-diabetic": { x: width * 0.5, y: height / 2 },
+    "Diabetic": { x: width * 0.7, y: height / 2 }
 };
 
-let nodes = [];
+// Color scale for categories
+const colorScale = d3.scaleThreshold()
+    .domain([10, 25]) // Pre-diabetic, Diabetic
+    .range(["green", "orange", "red"]); // Healthy, Pre-diabetic, Diabetic
 
-// Load data.json
-fetch("data.json")
-    .then(response => response.json())
-    .then(data => {
-        nodes = data.map(d => ({
-            ...d,
-            category: getCategory(d["Insulin "]),
-            x: width / 2,
-            y: height / 2,
-            color: clusters[getCategory(d["Insulin "])].color
-        }));
-        startSimulation();
+// Tooltip setup
+const tooltip = d3.select("body").append("div")
+    .style("position", "absolute")
+    .style("background", "lightgray")
+    .style("padding", "5px")
+    .style("border-radius", "5px")
+    .style("visibility", "hidden");
+
+// Load and process data
+let simulation;
+d3.json("data.json").then(data => {
+    data = data.map(d => ({
+        subject: d.subject,
+        carbs: d.Carbs,
+        protein: d.Protein,
+        fat: d.Fat,
+        fiber: d.Fiber,
+        insulin: d["Insulin "]
+    }));
+
+    data.forEach(d => {
+        d.category = d.insulin > 25 ? "Diabetic" : d.insulin > 10 ? "Pre-diabetic" : "Healthy";
     });
 
-// Function to determine category
-function getCategory(insulin) {
-    if (insulin <= 10) return "Healthy";
-    if (insulin <= 25) return "Pre-diabetic";
-    return "Diabetic";
-}
-
-// Force simulation
-function startSimulation() {
-    const simulation = d3.forceSimulation(nodes)
+    // Force simulation
+    simulation = d3.forceSimulation(data)
         .force("x", d3.forceX(d => clusters[d.category].x).strength(0.2))
         .force("y", d3.forceY(d => clusters[d.category].y).strength(0.2))
         .force("collide", d3.forceCollide(15))
         .on("tick", ticked);
 
-    const circles = svg.selectAll("circle").data(nodes).enter().append("circle")
-        .attr("r", 10)
-        .attr("fill", d => d.color)
-        .on("mouseover", function (event, d) {
-            d3.select("#tooltip").style("visibility", "visible")
-                .text(`Carbs: ${d.Carbs}, Protein: ${d.Protein}, Fat: ${d.Fat}, Fiber: ${d.Fiber}, Insulin: ${d["Insulin "]}`)
-                .style("top", (event.pageY - 10) + "px")
+    // Draw bubbles
+    const bubbles = svg.selectAll("circle")
+        .data(data)
+        .enter().append("circle")
+        .attr("r", 12)
+        .attr("fill", d => colorScale(d.insulin))
+        .style("opacity", 0.8)
+        .on("mouseover", (event, d) => {
+            tooltip.style("visibility", "visible")
+                .html(`Carbs: ${d.carbs}g <br> Protein: ${d.protein}g <br> Fat: ${d.fat}g <br> Fiber: ${d.fiber}g <br> Insulin: ${d.insulin}`);
+        })
+        .on("mousemove", (event) => {
+            tooltip.style("top", (event.pageY - 10) + "px")
                 .style("left", (event.pageX + 10) + "px");
         })
-        .on("mouseout", () => d3.select("#tooltip").style("visibility", "hidden"));
+        .on("mouseout", () => tooltip.style("visibility", "hidden"));
 
     function ticked() {
-        circles.attr("cx", d => d.x).attr("cy", d => d.y);
+        bubbles.attr("cx", d => d.x).attr("cy", d => d.y);
     }
-}
+});
 
-// Handle user input
-function addUserData() {
-    const carbs = +document.getElementById("carbs").value;
-    const protein = +document.getElementById("protein").value;
-    const fat = +document.getElementById("fat").value;
-    const fiber = +document.getElementById("fiber").value;
-    
-    const predictedInsulin = (carbs * 0.1) + (protein * 0.05) + (fat * 0.03) - (fiber * 0.02) + 5; // Example model
-    const category = getCategory(predictedInsulin);
-    
-    const newNode = {
-        Carbs: carbs,
-        Protein: protein,
-        Fat: fat,
-        Fiber: fiber,
-        "Insulin ": predictedInsulin,
-        category: category,
-        x: width / 2,
-        y: height / 2,
-        color: "blue"
-    };
-    nodes.push(newNode);
+// Add new user data point
+window.addUserData = function () {
+    let carbs = +document.getElementById("carbs").value;
+    let protein = +document.getElementById("protein").value;
+    let fat = +document.getElementById("fat").value;
+    let fiber = +document.getElementById("fiber").value;
 
-    const circle = svg.append("circle")
-        .attr("r", 10)
-        .attr("fill", "blue")
+    let insulinLevel = (carbs * 0.2) + (protein * 0.1) + (fat * 0.15) - (fiber * 0.05);
+    let category = insulinLevel > 25 ? "Diabetic" : insulinLevel > 10 ? "Pre-diabetic" : "Healthy";
+
+    let newUser = { carbs, protein, fat, fiber, insulin: insulinLevel, category };
+
+    let newBubble = svg.append("circle")
         .attr("cx", width / 2)
         .attr("cy", height / 2)
-        .transition()
+        .attr("r", 12)
+        .attr("fill", "blue")
+        .style("opacity", 1)
+        .on("mouseover", (event) => {
+            tooltip.style("visibility", "visible")
+                .html(`Carbs: ${carbs}g <br> Protein: ${protein}g <br> Fat: ${fat}g <br> Fiber: ${fiber}g <br> Insulin: ${insulinLevel.toFixed(2)}`);
+        })
+        .on("mousemove", (event) => {
+            tooltip.style("top", (event.pageY - 10) + "px")
+                .style("left", (event.pageX + 10) + "px");
+        })
+        .on("mouseout", () => tooltip.style("visibility", "hidden"));
+
+    newBubble.transition()
         .duration(1000)
         .attr("cx", clusters[category].x)
         .attr("cy", clusters[category].y);
 
-    // Show category label next to new point
     svg.append("text")
         .attr("x", clusters[category].x + 15)
         .attr("y", clusters[category].y)
         .attr("fill", "black")
         .text(category);
-}
+};
