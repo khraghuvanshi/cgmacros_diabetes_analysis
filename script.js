@@ -41,19 +41,24 @@ d3.json("data.json").then(data => {
         else d.category = "Healthy";
     });
 
+    const clusterCenters = {
+        "Healthy": { x: width * 0.35, y: height / 2 },
+        "Pre-diabetic": { x: width * 0.5, y: height / 2 },
+        "Diabetic": { x: width * 0.65, y: height / 2 }
+    };
+
     // Force simulation
-    const centerX = width / 2;
-    const centerY = height / 2;
+    // const centerX = width / 2;
+    // const centerY = height / 2;
 
     const simulation = d3.forceSimulation(data)
-        .force("x", d3.forceX(centerX).strength(0.2)) // Weak pull to center
-        .force("y", d3.forceY(centerY).strength(0.2)) // Weak pull to center
-        .force("collide", d3.forceCollide(15)) // Prevent overlap, but not too strong
-        .force("charge", d3.forceManyBody().strength(-10)) // Weak repulsion to prevent extreme spread
-        .alpha(1)  // Start strong for smooth movement
-        .alphaDecay(0.05)  // Reduce expansion time
-        .alphaMin(0.1)  // Stop simulation sooner
-        .on("tick", ticked); // Update positions
+        .force("x", d3.forceX(d => clusterCenters[d.category].x).strength(0.3)) // Move to cluster center
+        .force("y", d3.forceY(d => clusterCenters[d.category].y).strength(0.3)) // Keep groups aligned
+        .force("collide", d3.forceCollide(12)) // Prevent overlap, ensure separation
+        .force("charge", d3.forceManyBody().strength(-5)) // Soft repulsion to avoid excessive spread
+        .alpha(1)  
+        .alphaDecay(0.05)  
+        .on("tick", ticked);
 
     // const simulation = d3.forceSimulation(data)
     //     .force("x", d3.forceX(d => clusters[d.category].x).strength(0.5))
