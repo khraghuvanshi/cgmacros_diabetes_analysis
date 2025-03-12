@@ -43,9 +43,9 @@ d3.json("data.json").then(data => {
 
     // Force simulation
     const simulation = d3.forceSimulation(data)
-        .force("x", d3.forceX(d => clusters[d.category].x).strength(0.8))
-        .force("y", d3.forceY(d => clusters[d.category].y).strength(0.8))
-        .force("collide", d3.forceCollide(20))
+        .force("x", d3.forceX(d => clusters[d.category].x).strength(0.5))
+        .force("y", d3.forceY(d => clusters[d.category].y).strength(0.5))
+        .force("collide", d3.forceCollide(12))
         .on("tick", ticked);
 
     // Draw bubbles
@@ -114,7 +114,7 @@ d3.json("data.json").then(data => {
 
         // Update simulation to include the new point
         simulation.nodes(data);
-        simulation.alpha(0.3).restart();
+        simulation.alpha(0.1).alphaDecay(0.02).restart();
         simulation.alphaMin(0.05); // Stops simulation sooner
 
 
