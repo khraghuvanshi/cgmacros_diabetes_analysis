@@ -22,24 +22,26 @@ const tooltip = d3.select("body").append("div")
     .style("border-radius", "5px")
     .style("visibility", "hidden");
 
-// Load and process data
-let simulation;
 d3.json("data.json").then(data => {
+    // Normalize keys and remove trailing spaces
     data = data.map(d => ({
         subject: d.subject,
         carbs: d.Carbs,
         protein: d.Protein,
         fat: d.Fat,
         fiber: d.Fiber,
-        insulin: d["Insulin "]
+        insulin: d["Insulin "] // Fix trailing space issue
     }));
 
+    // Assign category
     data.forEach(d => {
-        d.category = d.insulin > 25 ? "Diabetic" : d.insulin > 10 ? "Pre-diabetic" : "Healthy";
+        if (d.insulin > 25) d.category = "Diabetic";
+        else if (d.insulin > 10) d.category = "Pre-diabetic";
+        else d.category = "Healthy";
     });
 
     // Force simulation
-    simulation = d3.forceSimulation(data)
+    const simulation = d3.forceSimulation(data)
         .force("x", d3.forceX(d => clusters[d.category].x).strength(0.2))
         .force("y", d3.forceY(d => clusters[d.category].y).strength(0.2))
         .force("collide", d3.forceCollide(15))
@@ -63,46 +65,46 @@ d3.json("data.json").then(data => {
         .on("mouseout", () => tooltip.style("visibility", "hidden"));
 
     function ticked() {
-        bubbles.attr("cx", d => d.x).attr("cy", d => d.y);
+        bubbles.attr("cx", d => d.x)
+               .attr("cy", d => d.y);
     }
+
+    // Add new user data point
+    window.addUserData = function () {
+        let carbs = +document.getElementById("carbs").value;
+        let protein = +document.getElementById("protein").value;
+        let fat = +document.getElementById("fat").value;
+        let fiber = +document.getElementById("fiber").value;
+
+        // Compute insulin prediction (Example formula)
+        let insulinLevel = (carbs * 0.2) + (protein * 0.1) + (fat * 0.15) - (fiber * 0.05);
+
+        let category = "Healthy";
+        if (insulinLevel > 25) category = "Diabetic";
+        else if (insulinLevel > 10) category = "Pre-diabetic";
+
+        let newUser = { carbs, protein, fat, fiber, insulin: insulinLevel, category };
+
+        data.push(newUser);
+        simulation.nodes(data);
+
+        let newBubble = svg.append("circle")
+            .attr("cx", width / 2)
+            .attr("cy", height / 2)
+            .attr("r", 12)
+            .attr("fill", colorScale(insulinLevel))
+            .style("opacity", 1)
+            .on("mouseover", (event, d) => {
+                tooltip.style("visibility", "visible")
+                    .html(`Carbs: ${carbs}g <br> Protein: ${protein}g <br> Fat: ${fat}g <br> Fiber: ${fiber}g <br> Insulin: ${insulinLevel.toFixed(2)}`);
+            })
+            .on("mousemove", (event) => {
+                tooltip.style("top", (event.pageY - 10) + "px")
+                    .style("left", (event.pageX + 10) + "px");
+            })
+            .on("mouseout", () => tooltip.style("visibility", "hidden"));
+
+        simulation.nodes(data);
+        simulation.alpha(1).restart();
+    };
 });
-
-// Add new user data point
-window.addUserData = function () {
-    let carbs = +document.getElementById("carbs").value;
-    let protein = +document.getElementById("protein").value;
-    let fat = +document.getElementById("fat").value;
-    let fiber = +document.getElementById("fiber").value;
-
-    let insulinLevel = (carbs * 0.2) + (protein * 0.1) + (fat * 0.15) - (fiber * 0.05);
-    let category = insulinLevel > 25 ? "Diabetic" : insulinLevel > 10 ? "Pre-diabetic" : "Healthy";
-
-    let newUser = { carbs, protein, fat, fiber, insulin: insulinLevel, category };
-
-    let newBubble = svg.append("circle")
-        .attr("cx", width / 2)
-        .attr("cy", height / 2)
-        .attr("r", 12)
-        .attr("fill", "blue")
-        .style("opacity", 1)
-        .on("mouseover", (event) => {
-            tooltip.style("visibility", "visible")
-                .html(`Carbs: ${carbs}g <br> Protein: ${protein}g <br> Fat: ${fat}g <br> Fiber: ${fiber}g <br> Insulin: ${insulinLevel.toFixed(2)}`);
-        })
-        .on("mousemove", (event) => {
-            tooltip.style("top", (event.pageY - 10) + "px")
-                .style("left", (event.pageX + 10) + "px");
-        })
-        .on("mouseout", () => tooltip.style("visibility", "hidden"));
-
-    newBubble.transition()
-        .duration(1000)
-        .attr("cx", clusters[category].x)
-        .attr("cy", clusters[category].y);
-
-    svg.append("text")
-        .attr("x", clusters[category].x + 15)
-        .attr("y", clusters[category].y)
-        .attr("fill", "black")
-        .text(category);
-};
