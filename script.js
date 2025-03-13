@@ -52,10 +52,12 @@ d3.json("data.json").then(data => {
     // const centerY = height / 2;
 
     const simulation = d3.forceSimulation(data)
+        .force("center", d3.forceCenter(width / 2, height / 2)) // Center of the SVG
+        .force("charge", d3.forceManyBody().strength(-5)) // Soft repulsion to avoid excessive spread
         .force("x", d3.forceX(d => clusterCenters[d.category].x).strength(0.3)) // Move to cluster center
         .force("y", d3.forceY(d => clusterCenters[d.category].y).strength(0.3)) // Keep groups aligned
         .force("collide", d3.forceCollide(12)) // Prevent overlap, ensure separation
-        .force("charge", d3.forceManyBody().strength(-5)) // Soft repulsion to avoid excessive spread
+        // .force("charge", d3.forceManyBody().strength(-5)) // Soft repulsion to avoid excessive spread
         .alpha(1)  
         .alphaDecay(0.05)  
         .on("tick", ticked);
