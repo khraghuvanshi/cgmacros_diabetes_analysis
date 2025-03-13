@@ -11,8 +11,8 @@ body {
 svg {
     display: block;
     margin: auto;
-    width: 95vw;
-    height: 400px;
+    width: 500px;
+    height: 800px;
     background-color: white;
     border: 2px solid #ddd;
     border-radius: 10px;
